@@ -1,8 +1,3 @@
-# Project de.rieckpil.quickstarts/deployment-to-payara-intellij
+# Deploy a Jakarta EE application to Payara using IntelliJ
 
-Steps to run this project:
-
-1. Start your Docker daemon
-2. Execute `./buildAndRun.sh` (Linux/MacOs) or `buildAndRun.bat` (Windows)
-3. Wait until Open Liberty is up- and running (e.g. use `docker logs -f CONTAINER_ID`)
-4. Visit http://localhost:9080/resources/sample
+Source code for the video on YouTube: [Deploy and debug a Jakarta EE application with Payara using IntelliJ IDEA](https://www.youtube.com/watch?v=-2JbA7JlO6w)
