@@ -16,7 +16,7 @@ public class SampleResource {
 
   @GET
   public Response message() {
-    return Response.ok(message).build();
+    return Response.ok(message.toUpperCase()).build();
   }
 
 }
