@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server>
+
+  <featureManager>
+    <feature>javaee-8.0</feature>
+  </featureManager>
+
+  <ssl id="defaultSSLConfig" trustDefaultCerts="true"/>
+  <quickStartSecurity userName="admin" userPassword="admin"/>
+
+  <messagingEngine>
+    <queue id="SIMPLE_QUEUE"/>
+  </messagingEngine>
+
+  <jmsQueueConnectionFactory jndiName="jms/JmsFactory">
+    <properties.wasJms remoteServerAddress="localhost:7276:BootStrapBasicMessaging"/>
+  </jmsQueueConnectionFactory>
+
+  <jmsQueue id="jms/JmsQueue" jndiName="jms/JmsQueue">
+    <properties.wasJms queueName="SIMPLE_QUEUE"/>
+  </jmsQueue>
+
+  <jmsActivationSpec id="jms-messaging-open-liberty/JmsMessageReader">
+    <properties.wasJms destinationRef="jms/JmsQueue"/>
+  </jmsActivationSpec>
+</server>
+
