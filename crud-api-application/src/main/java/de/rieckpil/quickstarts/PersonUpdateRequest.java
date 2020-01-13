@@ -13,7 +13,7 @@ public class PersonUpdateRequest {
   public PersonUpdateRequest() {
   }
 
-  public PersonUpdateRequest(@NotEmpty String firstName, @NotEmpty String lastName) {
+  public PersonUpdateRequest(String firstName, String lastName) {
     this.firstName = firstName;
     this.lastName = lastName;
   }

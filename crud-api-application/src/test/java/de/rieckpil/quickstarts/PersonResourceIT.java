@@ -6,7 +6,11 @@ import org.microshed.testing.SharedContainerConfig;
 import org.microshed.testing.jaxrs.RESTClient;
 import org.microshed.testing.jupiter.MicroShedTest;
 
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,44 +23,61 @@ public class PersonResourceIT {
 
   @AfterEach
   public void cleanUp() {
-    for (Person person : personsEndpoint.getAllPersons()) {
-      personsEndpoint.deletePersonById(person.getId());
+    for (Person person : personsEndpoint.getAllPersons().readEntity(new GenericType<List<Person>>() {
+    })) {
+      personsEndpoint.deletePerson(person.getId());
     }
   }
 
   @Test
-  public void shouldCreatePerson() {
-    PersonCreationRequest duke = new PersonCreationRequest(1337L, "duke", "jakarta");
-    Response result = personsEndpoint.createNewPerson(null, duke);
+  public void shouldReturnAllPersons() {
 
-    assertEquals(Response.Status.CREATED.getStatusCode(), result.getStatus());
-    var createdUrl = result.getHeaderString("Location");
-    assertNotNull(createdUrl);
+    personsEndpoint.createNewPerson(null, new PersonCreationRequest(1L, "duke", "jakarta"));
+    personsEndpoint.createNewPerson(null, new PersonCreationRequest(2L, "duke", "jakarta"));
+    personsEndpoint.createNewPerson(null, new PersonCreationRequest(3L, "duke", "jakarta"));
 
-    var newPerson = personsEndpoint.getPersonById(duke.getId()).readEntity(Person.class);
-    assertNotNull(newPerson);
-    assertEquals("duke", newPerson.getFirstName());
-    assertEquals("jakarta", newPerson.getLastName());
+    Response allPersons = personsEndpoint.getAllPersons();
+
+    assertEquals(3, allPersons.readEntity(new GenericType<List<Person>>() {
+    }).size());
+  }
+
+  @Test
+  public void shouldCreateNewPerson() {
+    Long randomId = ThreadLocalRandom.current().nextLong(1, 1_000_000);
+    Response response = personsEndpoint.createNewPerson(null, new PersonCreationRequest(randomId, "duke", "jakarta"));
+
+    URI locationHeader = response.getLocation();
+
+    assertTrue(locationHeader.toString().contains(randomId.toString()), "Should contain the Primary Key of the Person");
+    assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+
+    Response personById = personsEndpoint.getPersonById(randomId);
+
+    assertNotNull(personById.readEntity(Person.class));
   }
 
   @Test
   public void shouldUpdatePerson() {
-    personsEndpoint.createNewPerson(null, new PersonCreationRequest(42L, "duke", "jakarta"));
-    personsEndpoint.updatePerson(42L, new PersonUpdateRequest("duke", "foo"));
+    Long randomId = ThreadLocalRandom.current().nextLong(1, 1_000_000);
+    personsEndpoint.createNewPerson(null, new PersonCreationRequest(randomId, "duke", "jakarta"));
+    personsEndpoint.updatePerson(randomId, new PersonUpdateRequest("foo", "bar"));
 
-    var updatedDuke = personsEndpoint.getPersonById(42L).readEntity(Person.class);
+    Person personById = personsEndpoint.getPersonById(randomId).readEntity(Person.class);
 
-    assertEquals("duke", updatedDuke.getFirstName());
-    assertEquals("foo", updatedDuke.getLastName());
+    assertEquals("foo", personById.getFirstName());
+    assertEquals("bar", personById.getLastName());
   }
 
   @Test
   public void shouldDeletePerson() {
-    personsEndpoint.createNewPerson(null, new PersonCreationRequest(13L, "duke", "jakarta"));
-    personsEndpoint.deletePersonById(13L);
+    Long randomId = ThreadLocalRandom.current().nextLong(1, 1_000_000);
+    personsEndpoint.createNewPerson(null, new PersonCreationRequest(randomId, "duke", "jakarta"));
+    Response personById = personsEndpoint.getPersonById(randomId);
+    assertEquals(Response.Status.OK.getStatusCode(), personById.getStatus());
 
-    var response = personsEndpoint.getPersonById(14L);
-
-    assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+    personsEndpoint.deletePerson(randomId);
+    assertEquals(Response.Status.NOT_FOUND.getStatusCode(), personsEndpoint.getPersonById(randomId).getStatus());
   }
+
 }
