@@ -1,22 +1,16 @@
 package de.rieckpil.blog;
 
 import org.junit.jupiter.api.Test;
+import org.microshed.testing.SharedContainerConfig;
 import org.microshed.testing.jaxrs.RESTClient;
 import org.microshed.testing.jupiter.MicroShedTest;
-import org.microshed.testing.testcontainers.ApplicationContainer;
-import org.testcontainers.junit.jupiter.Container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @MicroShedTest
+@SharedContainerConfig(SampleApplicationConfig.class)
 public class SampleResourceIT {
-
-  @Container
-  public static ApplicationContainer app = new ApplicationContainer()
-    .withEnv("message", "Hello World from MicroShed Testing!")
-    .withAppContextRoot("/")
-    .withReadinessPath("/health/ready");
 
   @RESTClient
   public static SampleResource sampleResource;
@@ -27,6 +21,14 @@ public class SampleResourceIT {
     System.out.println(response);
     assertNotNull(response);
     assertEquals("Hello World from MicroShed Testing!", response.getString("message"));
+  }
+
+  @Test
+  public void shouldReturnDatabaseInformation() {
+    var response = sampleResource.getDatabaseInformation();
+
+    assertNotNull(response);
+    System.out.println(response);
   }
 
 }
