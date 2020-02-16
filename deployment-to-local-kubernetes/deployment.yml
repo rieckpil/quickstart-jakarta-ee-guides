@@ -1,0 +1,45 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: jakarta-ee-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jakarta-ee-app
+  template:
+    metadata:
+      labels:
+        app: jakarta-ee-app
+    spec:
+      containers:
+        - name: jakarta-ee-app
+          image: localhost:5000/jakarta-ee-app
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9080
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9080
+            initialDelaySeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9080
+            initialDelaySeconds: 15
+      restartPolicy: Always
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: jakarta-ee-app
+spec:
+  type: NodePort
+  ports:
+    - port: 9080
+      targetPort: 9080
+      protocol: TCP
+      nodePort: 31000
+  selector:
+    app: jakarta-ee-app
